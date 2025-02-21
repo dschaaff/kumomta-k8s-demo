@@ -1,0 +1,33 @@
+replicaCount: 1
+env:
+  - name: KUMOMTA_SECONDARY_TRUSTED_HOSTS
+    value: "0.0.0.0/0,::/0"
+  - name: KUMOMTA_TSA_PUBLISH_HOST
+    value: "http://kumomta-tsa-0.kumomta-tsa-headless.default.svc.cluster.local:8008"
+  - name: KUMOMTA_TSA_SUBSCRIBE_HOST
+    value: "http://kumomta-tsa.default.svc.cluster.local:8008"
+  - name: KUMOMTA_SINK_ENABLED
+    value: "true"
+  - name: KUMOMTA_SINK_ENDPOINT
+    value: "kumomta-sink.default.svc.cluster.local"
+  - name: KUMOMTA_REDIS_HOST
+    value: "redis://dragonfly.default.svc.cluster.local"
+tsa:
+  env:
+    - name: KUMOMTA_TSA_TRUSTED_HOSTS
+      value: "0.0.0.0/0,::/0"
+sink:
+  enabled: true
+extraManifests:
+# basic auth secret
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: http-listener-keys
+      labels:
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+        app.kubernetes.io/name: '{{ include "kumomta.name" . }}'
+        helm.sh/chart: '{{ include "kumomta.chart" . }}'
+    data:
+      user1: "ZGZhZDYxNDNiNDUyMGY4NTI2ZTRmOWEwYjI1YWI0MmI="

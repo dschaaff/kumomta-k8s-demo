@@ -1,0 +1,21 @@
+{
+  "envelope_sender": "test@example.com",
+  "content": {
+    "text_body": "This is the plain text part",
+    "html_body": "<p>This is the <b>HTML</b> part</p>",
+    "from": {
+      "email": "test@example.com",
+      "name": "Test"
+    },
+    "subject": "This is the subject",
+    "reply_to": {
+      "email": "test@example.com",
+      "name": "Test"
+    }
+  },
+  "recipients": [
+    {
+      "email": "someone@example.com"
+    }
+  ]
+}

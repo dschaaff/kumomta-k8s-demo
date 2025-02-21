@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kumomta.fullname" . }}-tsa
+  labels:
+    {{- include "kumomta.tsaLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.tsa.service.type }}
+  ports:
+    - port: {{ .Values.tsa.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "kumomta.tsaSelectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kumomta.fullname" . }}-tsa-headless
+  labels:
+    {{- include "kumomta.tsaLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: {{ .Values.tsa.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "kumomta.tsaSelectorLabels" . | nindent 4 }}

@@ -1,0 +1,21 @@
+{{- if .Values.sink.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kumomta.fullname" . }}-sink
+  labels:
+    {{- include "kumomta.sinkLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.sink.service.type }}
+  ports:
+    - port: {{ .Values.sink.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.sink.service.smtpPort }}
+      targetPort: smtp
+      protocol: TCP
+      name: smtp
+  selector:
+    {{- include "kumomta.sinkSelectorLabels" . | nindent 4 }}
+{{- end -}}

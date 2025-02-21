@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sink-configs
+  labels:
+    {{- include "kumomta.sinkLabels" . | nindent 4 }}
+data:
+{{ (.Files.Glob "sink-configs/*").AsConfig | indent 2 }}

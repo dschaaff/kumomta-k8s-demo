@@ -1,0 +1,7 @@
+# https://docs.kumomta.com/userguide/configuration/sendingips/
+[source."shared-00"]
+
+# shared ip pool weights
+[pool."shared"]
+[pool."shared"."shared-00"]
+weight = 2

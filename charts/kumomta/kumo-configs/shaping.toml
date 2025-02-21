@@ -1,0 +1,37 @@
+# any overrides of the default shaping config go here
+# https://github.com/KumoCorp/kumomta/blob/main/assets/policy-extras/shaping.toml
+# https://docs.kumomta.com/userguide/configuration/trafficshaping/
+# see https://docs.kumomta.com/reference/kumo/make_egress_path for documention of available options
+# https://www.youtube.com/watch?v=Vxbe5ExMOXk
+['default']
+max_ready = 100
+connection_limit = 200
+max_message_rate = "100/s"
+enable_tls = "OpportunisticInsecure"
+
+['http://kumomta-tsa-0.kumomta-tsa-headless.kumomta.svc.cluster.local:8008.tsa.kumomta']
+max_deliveries_per_connection = 1000000
+mx_rollup           = false
+max_message_rate    = '500000/s'
+max_connection_rate = '1000/s'
+idle_timeout        = '60 s'
+connection_limit    = 100
+max_ready           = 1024
+
+['http://kumomta-tsa-1.kumomta-tsa-headless.kumomta.svc.cluster.local:8008.tsa.kumomta']
+max_deliveries_per_connection = 1000000
+mx_rollup           = false
+max_message_rate    = '500000/s'
+max_connection_rate = '1000/s'
+idle_timeout        = '60 s'
+connection_limit    = 100
+max_ready           = 1024
+
+['http://kumomta-tsa-2.kumomta-tsa-headless.kumomta.svc.cluster.local:8008.tsa.kumomta']
+max_deliveries_per_connection = 1000000
+mx_rollup           = false
+max_message_rate    = '500000/s'
+max_connection_rate = '1000/s'
+idle_timeout        = '60 s'
+connection_limit    = 100
+max_ready           = 1024

@@ -1,0 +1,97 @@
+{{- if .Values.sink.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kumomta.fullname" . }}-sink
+  labels:
+    {{- include "kumomta.tsaLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.sink.autoscaling.enabled }}
+  replicas: {{ .Values.sink.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "kumomta.sinkSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/sink-config: {{ (.Files.Get "sink-configs/sink.lua") | sha256sum }}
+      {{- with .Values.sink.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "kumomta.sinkLabels" . | nindent 8 }}
+        {{- with .Values.tsa.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kumomta.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-sink
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.sink.deployment.command }}
+          command:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.sink.deployment.args }}
+          args:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with .Values.sink.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.sink.service.httpPort }}
+              protocol: TCP
+            - name: smtp
+              containerPort: {{ .Values.sink.service.smtpPort}}
+          {{- with .Values.sink.lifecycleHook }}
+          lifecycle:
+            {{- toYaml . | nindent 12}}
+          {{- end }}
+          {{- with .Values.sink.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.sink.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.sink.resources | nindent 12 }}
+          {{- with .Values.sink.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.sink.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sink.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sink.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sink.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sink.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end -}}

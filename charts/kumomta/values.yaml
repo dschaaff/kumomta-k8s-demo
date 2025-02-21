@@ -1,0 +1,335 @@
+# Default values for kumomta.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+kumoConfigFiles: []
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/kumocorp/kumomta
+  pullPolicy: IfNotPresent
+  tag: 2025.01.29-833f82a8
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+deployment:
+  args:
+    - --policy=/opt/kumomta/etc/policy/init.lua
+    - --user=kumod
+  command:
+    - /opt/kumomta/sbin/kumod
+
+env:
+  - name: KUMOD_LOG
+    value: kumod=debug
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsUser: 999
+  fsGroup: 999
+  sysctls:
+    - name: net.ipv4.ip_local_port_range
+      value: "5000 63000"
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  httpPort: 8000
+  metricsPort: 8080
+  smtpPort: 2500
+
+serviceMonitor:
+  enabled: false
+  # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/basic-auth.md
+  # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.BasicAuth
+  # basicAuth: {}
+  # basicAuth:
+  #   username:
+  #     name: foo # name of secret
+  #     key: username # key in secret
+  #   password:
+  #     name: foo # name of secret
+  #     key: username # key in secret
+
+ingress:
+  enabled: false
+  className: "nginx-internal"
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# livenessProbe:
+# httpGet:
+#   path: /
+#   port: http
+readinessProbe:
+  httpGet:
+    path: /api/check-liveness/v1
+    port: http
+
+lifecycleHook:
+  preStop:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - sleep 15
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+  # additionalMetrics: []
+
+# Additional volumes on the output StatefulSet definition.
+volumes:
+  - name: kumo-configs
+    configMap:
+      name: kumo-configs
+  - name: http-listener-keys
+    secret:
+      secretName: http-listener-keys
+      optional: false
+  - name: kumo-logs
+    emptyDir: {}
+
+# Additional volumeMounts on the output StatefulSet definition.
+volumeMounts:
+  - name: kumo-configs
+    mountPath: "/opt/kumomta/etc/policy"
+    readOnly: true
+  - name: http-listener-keys
+    mountPath: "/opt/kumomta/etc/http_listener_keys/"
+    readOnly: true
+  - name: kumo-logs
+    mountPath: "/var/log/kumomta"
+  - name: spool
+    mountPath: "/var/spool/kumomta"
+
+volumeClaimTemplates:
+  - metadata:
+      name: spool
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 25Gi
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
+
+tsa:
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+    # additionalMetrics: []
+  deployment:
+    command:
+      - /opt/kumomta/sbin/tsa-daemon
+      - --policy
+      - /opt/kumomta/etc/policy/tsa_init.lua
+    # args: []
+  # livenessProbe:
+  # httpGet:
+  #   path: /
+  #   port: http
+  readinessProbe:
+    httpGet:
+      path: /get_config_v1/shaping.toml
+      port: http
+  lifecycleHook:
+    preStop:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - sleep 15
+  podLabels: {}
+  ingress:
+    enabled: false
+    className: "nginx-internal"
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+    # Additional volumes on the TSA deployment definition.
+  volumeClaimTemplates:
+    - metadata:
+        name: tsa-spool
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+  volumes:
+    - name: kumo-configs
+      configMap:
+        name: kumo-configs
+    - name: http-listener-keys
+      secret:
+        secretName: http-listener-keys
+        optional: false
+    - name: kumo-logs
+      emptyDir: {}
+
+  # Additional volumeMounts on the TSA deployment definition.
+  volumeMounts:
+    - name: kumo-configs
+      mountPath: "/opt/kumomta/etc/policy"
+      readOnly: true
+    - name: http-listener-keys
+      mountPath: "/opt/kumomta/etc/http_listener_keys/"
+      readOnly: true
+    - name: kumo-logs
+      mountPath: "/var/log/kumo"
+    - name: tsa-spool
+      mountPath: "/var/spool/kumomta"
+  service:
+    type: ClusterIP
+    httpPort: 8008
+
+  tolerations: []
+
+  affinity: {}
+
+sink:
+  enabled: true
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+    # additionalMetrics: []
+  deployment:
+    command:
+      - /opt/kumomta/sbin/kumod
+      - --policy
+      - /opt/kumomta/etc/policy/sink.lua
+    # args: []
+  # livenessProbe:
+  # httpGet:
+  #   path: /
+  #   port: http
+  # readinessProbe:
+  lifecycleHook:
+    preStop:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - sleep 15
+
+  podLabels: {}
+
+  service:
+    type: ClusterIP
+    httpPort: 8008
+    smtpPort: 25
+
+  ingress:
+    enabled: false
+    className: "nginx-internal"
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+    # Additional volumes on the TSA deployment definition.
+    #
+  volumes:
+    - name: sink-configs
+      configMap:
+        name: sink-configs
+    - name: kumo-logs
+      emptyDir: {}
+  volumeMounts:
+    - name: sink-configs
+      mountPath: "/opt/kumomta/etc/policy"
+      readOnly: true
+    - name: kumo-logs
+      mountPath: "/var/log/kumo"
+
+## Extra manifests to deploy as an array
+extraManifests:
+  []
+  # - apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     labels:
+  #       name: prometheus-extra
+  #   data:
+  #     extra-data: "value"

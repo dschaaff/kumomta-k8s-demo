@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kumo-configs
+  labels:
+    {{- include "kumomta.labels" . | nindent 4 }}
+data:
+{{ (.Files.Glob "kumo-configs/*").AsConfig | indent 2 }}
+{{- range $i, $value := .Values.kumoConfigFiles }}
+{{- range $k, $v := $value }}
+{{ $k | indent 2 }}: |-
+{{ $v | indent 4 }}
+{{- end }}
+{{- end }}
