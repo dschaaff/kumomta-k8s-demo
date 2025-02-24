@@ -1,9 +1,9 @@
-replicaCount: 1
+replicaCount: 3
 env:
   - name: KUMOMTA_SECONDARY_TRUSTED_HOSTS
     value: "0.0.0.0/0,::/0"
   - name: KUMOMTA_TSA_PUBLISH_HOST
-    value: "http://kumomta-tsa-0.kumomta-tsa-headless.default.svc.cluster.local:8008"
+    value: "http://kumomta-tsa-0.kumomta-tsa-headless.default.svc.cluster.local:8008,http://kumomta-tsa-1.kumomta-tsa-headless.default.svc.cluster.local:8008"
   - name: KUMOMTA_TSA_SUBSCRIBE_HOST
     value: "http://kumomta-tsa.default.svc.cluster.local:8008"
   - name: KUMOMTA_SINK_ENABLED
@@ -13,6 +13,7 @@ env:
   - name: KUMOMTA_REDIS_HOST
     value: "redis://dragonfly.default.svc.cluster.local"
 tsa:
+  replicaCount: 2
   env:
     - name: KUMOMTA_TSA_TRUSTED_HOSTS
       value: "0.0.0.0/0,::/0"
