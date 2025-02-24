@@ -91,10 +91,10 @@ kumo.on("init", function()
 		max_segment_duration = "1 minute",
 	})
 	-- configure smtp listener
-	kumo.start_esmtp_listener({
-		listen = "0.0.0.0:2500",
-		relay_hosts = { "0.0.0.0/0" },
-	})
+	-- kumo.start_esmtp_listener({
+	-- 	listen = "0.0.0.0:2500",
+	-- 	relay_hosts = { "0.0.0.0/0" },
+	-- })
 
 	-- Configure HTTP Listeners for injection and management APIs.
 	-- See https://docs.kumomta.com/userguide/configuration/httplisteners/
@@ -103,11 +103,6 @@ kumo.on("init", function()
 		trusted_hosts = kumo.string.split(os.getenv("KUMOMTA_TRUSTED_HOSTS") or "0.0.0.0", ","),
 		-- trusted_hosts = trusted_hosts_table,
 	})
-
-	-- kumo.start_esmtp_listener({
-	-- 	listen = "0.0.0.0:25",
-	-- 	trusted_hosts = kumo.string.split(os.getenv("KUMOMTA_TRUSTED_HOSTS") or "0.0.0.0", ","),
-	-- })
 
 	-- Configure bounce classification.
 	-- See https://docs.kumomta.com/userguide/configuration/bounce/
